@@ -19,9 +19,18 @@ public class PluginTest : MonoBehaviour
 
     [DllImport("__Internal")]
     private static extern void IOSshareScreenImage(byte[] imagePNG, long imageLen, string caption, intCallBack callback);
+
+    [DllImport("__Internal")]
+    private static extern void IOSshowWebView(string URL, int pixelSpace);
+
+    [DllImport("__Internal")]
+    private static extern void IOShideWebView(intCallBack callBack);
 #endif
 
     public Button shareButton;
+
+    public RectTransform webPanel;
+    public RectTransform buttonStrip;
 
     // Start is called before the first frame update
     void Start()
@@ -123,5 +132,47 @@ public class PluginTest : MonoBehaviour
 
         Object.Destroy(image);
     }
-}
 
+    public void OpenWebView(string url, int pixelShift)
+    {
+        if (Application.platform == RuntimePlatform.IPhonePlayer)
+            IOSshowWebView(url, pixelShift);
+    }
+
+    public void CloseWebView(System.Action<int> closeComplete)
+    {
+        onCloseWebView = closeComplete;
+
+        if (Application.platform == RuntimePlatform.IPhonePlayer)
+            IOShideWebView(CloseWebViewHandler);
+        else
+            CloseWebViewHandler(0);
+    }
+
+    [AOT.MonoPInvokeCallback(typeof(intCallBack))]
+    static void CloseWebViewHandler(int result)
+    {
+        if (onCloseWebView != null)
+            onCloseWebView(result);
+
+        onCloseWebView = null;
+    }
+
+    static System.Action<int> onCloseWebView;
+
+    public void OpenWebViewTapped()
+    {
+        Canvas parentCanvas = buttonStrip.GetComponentInParent<Canvas>();
+        int stripHeight = (int)(buttonStrip.rect.height * parentCanvas.scaleFactor + 0.5f);
+        webPanel.gameObject.SetActive(true);
+        OpenWebView("https://scastanedamunoz.azurewebsites.net", stripHeight);
+    }
+
+    public void CloseWebViewTapped()
+    {
+        CloseWebView((int result) =>
+        {
+            webPanel.gameObject.SetActive(false);
+        }); 
+    }
+}
