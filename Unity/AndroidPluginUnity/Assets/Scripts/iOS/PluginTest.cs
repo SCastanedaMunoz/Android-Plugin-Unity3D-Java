@@ -10,25 +10,28 @@ public class PluginTest : MonoBehaviour
 #if UNITY_IOS 
     [DllImport("__Internal")]
     private static extern double IOSgetElapsedTime();
+
+    private delegate void intCallBack(int result);
+
+    [DllImport("__Internal")]
+    private static extern void IOScreateNativeAlert(string[] strings, int stringCount, intCallBack callback);
 #endif
 
     // Start is called before the first frame update
     void Start()
     {
         Debug.Log("Elapsed Time: " + GetElapsedTime());
+        StartCoroutine(ShowDialog(Random.Range(7f, 12f)));
     }
 
-    int frameCounter = 0;
-
-    // Update is called once per frame
-    void Update()
+    IEnumerator ShowDialog(float delayTime)
     {
-        frameCounter++;
-        if (frameCounter >= 5)
-        {
-            Debug.Log("Tick: " + GetElapsedTime());
-            frameCounter = 0;
-        }
+        Debug.Log("Will show alert after " + delayTime + " seconds");
+
+        if (delayTime > 0)
+            yield return new WaitForSeconds(delayTime);
+
+        CreateIOSAlert(new string[] { "Title", "Message", "Default Button", "Other Button"});
     }
 
     double GetElapsedTime()
@@ -40,5 +43,23 @@ public class PluginTest : MonoBehaviour
         return 0;
     }
 
+    [AOT.MonoPInvokeCallback(typeof(intCallBack))]
+    static void NativeAlertHandler(int result)
+    {
+        Debug.Log("Unity: clicked button at index: " + result);
+    }
+
+    public void CreateIOSAlert(string[] strings)
+    {
+        if(strings.Length < 3)
+            Debug.LogError("Alert requires at least 3 strings!");
+
+        if (Application.platform == RuntimePlatform.IPhonePlayer)
+            IOScreateNativeAlert(strings, strings.Length, NativeAlertHandler);
+        else
+            Debug.LogWarning("Can only display alert on iOS");
+
+        Debug.Log("Alert shown after: " + GetElapsedTime() + " seconds");
+    }
 }
 
