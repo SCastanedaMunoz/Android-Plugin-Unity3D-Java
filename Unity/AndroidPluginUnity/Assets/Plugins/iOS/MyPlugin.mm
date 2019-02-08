@@ -1,6 +1,6 @@
-﻿#import <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 
-@inteface MyPlugin: NSObject
+@interface MyPlugin: NSObject
 {
 
 }
@@ -17,7 +17,7 @@ static MyPlugin *_sharedInstance;
 		NSLog(@"Creating MyPlugin shared instance");
 		_sharedInstance = [[MyPlugin alloc] init];
 	});
-
+    
 	return _sharedInstance;
 }
 

@@ -5,7 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Android/SampleAndroidScene.unity
     guid: 6d366ff47b6654b47906eb8080f26b8f
+  - enabled: 1
+    path: Assets/Scenes/iOS/SampleiOSScene.unity
+    guid: 77fb81d4977c2ea4792db7f65229b55f
   m_configObjects: {}
