@@ -9,7 +9,7 @@ public class PluginTest : MonoBehaviour
 {
 #if UNITY_IOS 
     [DllImport("__Internal")]
-    private static extern double IOSgetElpasedTime();
+    private static extern double IOSgetElapsedTime();
 #endif
 
     // Start is called before the first frame update
@@ -34,7 +34,7 @@ public class PluginTest : MonoBehaviour
     double GetElapsedTime()
     {
         if(Application.platform == RuntimePlatform.IPhonePlayer)
-            return IOSgetElpasedTime();
+            return IOSgetElapsedTime();
 
         Debug.LogWarning("Platform is not IPhone Player");
         return 0;
