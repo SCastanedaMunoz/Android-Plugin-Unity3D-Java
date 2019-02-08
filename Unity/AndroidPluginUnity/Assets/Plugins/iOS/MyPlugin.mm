@@ -39,7 +39,7 @@ static MyPlugin *_sharedInstance;
     
     for(int ix=0; ix < stringCount; ix++)
     {
-        if(strlen(strings_in[ix] > 0))
+        if(strlen(strings_in[ix]) > 0)
             [strings addObject:[MyPlugin createNSString:strings_in[ix]]];
     }
     
