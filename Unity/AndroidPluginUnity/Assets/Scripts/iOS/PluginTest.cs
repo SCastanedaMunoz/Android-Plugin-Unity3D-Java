@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 
@@ -15,13 +16,17 @@ public class PluginTest : MonoBehaviour
 
     [DllImport("__Internal")]
     private static extern void IOScreateNativeAlert(string[] strings, int stringCount, intCallBack callback);
+
+    [DllImport("__Internal")]
+    private static extern void IOSshareScreenImage(byte[] imagePNG, long imageLen, string caption, intCallBack callback);
 #endif
+
+    public Button shareButton;
 
     // Start is called before the first frame update
     void Start()
     {
         Debug.Log("Elapsed Time: " + GetElapsedTime());
-        StartCoroutine(ShowDialog(Random.Range(7f, 12f)));
     }
 
     IEnumerator ShowDialog(float delayTime)
@@ -60,6 +65,63 @@ public class PluginTest : MonoBehaviour
             Debug.LogWarning("Can only display alert on iOS");
 
         Debug.Log("Alert shown after: " + GetElapsedTime() + " seconds");
+    }
+
+    public void ShareScreenTapped()
+    {
+        if (shareButton != null)
+            shareButton.gameObject.SetActive(false);
+
+        ShareScreenShot(Application.productName + " screenshot", (int result) =>
+        {
+            Debug.Log("Share completed with: " + result);
+            CreateIOSAlert(new string[] { "Share Complete", "Share completed with: " + result, "OK" });
+
+            if (shareButton != null)
+                shareButton.gameObject.SetActive(true);
+        });
+    }
+
+    static System.Action<int> ShareCompleteAction;
+
+    static bool isSharingScreenShot;
+
+    [AOT.MonoPInvokeCallback(typeof(intCallBack))]
+    static void ShareCallBack(int result)
+    {
+        Debug.Log("Unity: share completed with: " + result);
+        if (ShareCompleteAction != null)
+            ShareCompleteAction(result);
+        isSharingScreenShot = false;
+    }
+
+    public void ShareScreenShot(string caption, System.Action<int> shareComplete)
+    {
+        if (isSharingScreenShot)
+        {
+            Debug.LogError("Already sharing screenshot - aborting");
+            return;
+        }
+
+        isSharingScreenShot = true;
+        ShareCompleteAction = shareComplete;
+        StartCoroutine(WaitForEndOfFrame(caption));
+    }
+
+    IEnumerator WaitForEndOfFrame(string caption)
+    {
+        yield return new WaitForEndOfFrame();
+        Texture2D image = ScreenCapture.CaptureScreenshotAsTexture();
+        Debug.Log("Image size: " + image.width + " x " + image.height);
+
+        byte[] imagePNG = image.EncodeToPNG();
+
+        Debug.Log("PNG size: " + imagePNG.Length);
+
+        if (Application.platform == RuntimePlatform.IPhonePlayer)
+            IOSshareScreenImage(imagePNG, imagePNG.Length, caption, ShareCallBack);
+
+        Object.Destroy(image);
     }
 }
 
