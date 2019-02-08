@@ -2,7 +2,7 @@
 
 @interface MyPlugin: NSObject
 {
-
+    NSDate *creationDate;
 }
 @end
 
@@ -32,5 +32,20 @@ static MyPlugin *_sharedInstance;
 -(void)initHelper
 {
 	NSLog(@"initHelper called");
+    creationDate = [NSDate date];
+}
+
+-(double)getElapsedTime
+{
+    return[[NSDate date] timeIntervalSinceDate:creationDate];
 }
 @end
+
+
+extern "C"
+{
+    double IOSgetElapsedTime()
+    {
+        return [[MyPlugin sharedInstance] getElapsedTime];
+    }
+}
