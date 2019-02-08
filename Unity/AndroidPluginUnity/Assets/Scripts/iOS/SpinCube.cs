@@ -4,15 +4,11 @@ using UnityEngine;
 
 public class SpinCube : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public float Speed = 30f;
 
     // Update is called once per frame
     void Update()
     {
-        
+        transform.Rotate(Speed * Time.deltaTime, 2 * Speed * Time.deltaTime, -Speed * Time.deltaTime);
     }
 }
