@@ -2,6 +2,7 @@
 
 public class UnityToastManager : MonoBehaviour
 {
+    const string pluginName = "net.scastanedamunoz.unity.ToastExample";
 #if UNITY_ANDROID 
     private AndroidJavaObject toastExample = null;
     private AndroidJavaObject activityContext = null;
@@ -21,7 +22,7 @@ public class UnityToastManager : MonoBehaviour
                 activityContext = activityClass.GetStatic<AndroidJavaObject>("currentActivity");
             }
 
-            using (AndroidJavaClass pluginClass = new AndroidJavaClass("net.scastanedamunoz.androidlib.ToastExample"))
+            using (AndroidJavaClass pluginClass = new AndroidJavaClass(pluginName))
             {
                 if (pluginClass != null)
                 {
