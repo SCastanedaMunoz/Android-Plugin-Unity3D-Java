@@ -5,7 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Android/AndroidToastNotifications.unity
     guid: 6d366ff47b6654b47906eb8080f26b8f
   - enabled: 0
