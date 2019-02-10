@@ -9,12 +9,34 @@ public class AndroidPluginTest : MonoBehaviour
     static AndroidJavaClass _pluginClass;
     static AndroidJavaObject _pluginInstance;
 
+    class AlertViewCallback : AndroidJavaProxy
+    {
+        private System.Action<int> alertHandler;
+
+        public AlertViewCallback(System.Action<int> alertHandlerIn) : base(pluginName + "$AlertViewCallback")
+        {
+            alertHandler = alertHandlerIn;
+        }
+
+        public void onButtonTapped(int index)
+        {
+            Debug.Log("Button tapped: " + index);
+
+            alertHandler?.Invoke(index);
+        }
+    }
+
     public static AndroidJavaClass PluginClass
     {
         get
         {
             if (_pluginClass == null)
+            {
                 _pluginClass = new AndroidJavaClass(pluginName);
+                AndroidJavaClass playerClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+                AndroidJavaObject activity = playerClass.GetStatic<AndroidJavaObject>("currentActivity");
+                _pluginClass.SetStatic<AndroidJavaObject>("mainActivity", activity);
+            }
 
             return _pluginClass;
         }
@@ -37,10 +59,13 @@ public class AndroidPluginTest : MonoBehaviour
         Debug.Log("Elapsed Time: " + getElapsedTime());
     }
 
-    // Update is called once per frame
-    void Update()
+    public void ShowAlertDialogTapped()
     {
-        
+        showAlertDialog(new string[] { "Alert Title", "Alert Message", "Button 1", "Button 2" },
+               (int obj) =>
+               {
+                   Debug.Log("Local Hangled called: " + obj);
+               });
     }
 
     double getElapsedTime()
@@ -50,5 +75,19 @@ public class AndroidPluginTest : MonoBehaviour
 
         Debug.LogWarning("WrongPlatform");
         return 0;
+    }
+
+    void showAlertDialog(string[] strings, System.Action<int> handler = null)
+    {
+        if (strings.Length < 3)
+        {
+            Debug.LogError("AlertView requires at least 3 strings");
+            return;
+        }
+
+        if (Application.platform == RuntimePlatform.Android)
+            PluginInstance.Call("showAlertView", new object[] { strings, new AlertViewCallback(handler) });
+        else
+            Debug.LogWarning("AlertView not supported on this platform");
     }
 }

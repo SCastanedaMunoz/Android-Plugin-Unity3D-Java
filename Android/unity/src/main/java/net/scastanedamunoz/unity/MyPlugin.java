@@ -17,9 +17,9 @@ public class MyPlugin
 
     private long startTime;
 
-    public interface AlerViewCallback
+    public interface AlertViewCallback
     {
-        public  void onButtonTapped(int id);
+        void onButtonTapped(int id);
     }
 
     private MyPlugin()
@@ -33,7 +33,7 @@ public class MyPlugin
         return  (System.currentTimeMillis() - startTime)/ 1000.0f;
     }
 
-    public void showAlertView(String[] strings, final AlerViewCallback callback)
+    public void showAlertView(String[] strings, final AlertViewCallback callback)
     {
         if(strings.length < 3)
         {
