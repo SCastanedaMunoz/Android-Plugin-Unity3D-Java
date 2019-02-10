@@ -25,12 +25,12 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:28.0.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation files('C:/Users/santi/AppData/Local/Android/Sdk/extras/android/support/v4/android-support-v4.jar')
 }
 
 task makeJar(type: Copy) {
@@ -43,5 +43,13 @@ task makeJar(type: Copy) {
 task clearJar(type: Copy) {
     delete 'release/AndroidPlugin.jar'
 }
+
+task copyPlugin(type: Copy) {
+    dependsOn assemble
+    from ('build/outputs/aar')
+    into ('../../Unity/AndroidPluginUnity/Assets/Plugins/Android')
+    include (project.name + '-release.aar')
+}
+
 
 makeJar.dependsOn(clearJar, build)
