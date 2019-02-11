@@ -45,6 +45,9 @@ public class AndroidPluginTest : MonoBehaviour
 
     public Button shareButton;
     public Text timeStamp;
+    public RectTransform webPanel;
+    public RectTransform buttonStrip;
+
     static bool isSharingScreenShot;
 
     public static AndroidJavaClass PluginClass
@@ -151,4 +154,33 @@ public class AndroidPluginTest : MonoBehaviour
         Object.Destroy(image);
     }
 
+    public void OpenWebView(string URL, int pixelShift)
+    {
+        if (Application.platform == RuntimePlatform.Android)
+            PluginInstance.Call("showWebView", new object[] { URL, pixelShift });
+    }
+
+    public void CloseWebView(System.Action<int> closeComplete)
+    {
+        if (Application.platform == RuntimePlatform.Android)
+            PluginInstance.Call("closeWebView", new object[] { new ShareImageCallback(closeComplete) });
+        else
+            closeComplete(0);
+    }
+
+    public void OpenWebViewTapped()
+    {
+        Canvas parentCanvas = buttonStrip.GetComponentInParent<Canvas>();
+        int stripHeight = (int)(buttonStrip.rect.height * parentCanvas.scaleFactor + 1f);
+        webPanel.gameObject.SetActive(true);
+        OpenWebView("https://scastanedamunoz.azurewebsites.net", stripHeight);
+    }
+
+    public void CloseWebViewTapped()
+    {
+        CloseWebView((int result) =>
+        {
+            webPanel.gameObject.SetActive(false);
+        });
+    }
 }

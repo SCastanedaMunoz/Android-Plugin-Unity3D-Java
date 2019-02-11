@@ -7,14 +7,20 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
+import android.view.View;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import java.io.File;
 import java.io.FileOutputStream;
 
 public class MyPlugin {
+
     private static final MyPlugin ourInstance = new MyPlugin();
 
-    private static final String LOGTAG = "SCastanedaMunoz";
+    protected static final String LOGTAG = "SCM";
 
     public static MyPlugin getInstance() {
         return ourInstance;
@@ -31,6 +37,10 @@ public class MyPlugin {
     }
 
     private long startTime;
+    private LinearLayout webLayout;
+    private TextView webTextView;
+    private WebView webView;
+
 
     private MyPlugin() {
         Log.i(LOGTAG,"Created MyPlugin V3");
@@ -75,12 +85,60 @@ public class MyPlugin {
         });
     }
 
+    public  void showWebView(final String webURL, final int pixelSpace)
+    {
+        mainActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Log.i(LOGTAG,"Want to open webview for " + webURL);
+                if (webTextView==null)
+                    webTextView = new TextView(mainActivity);
+                webTextView.setText("");
+                if (webLayout==null)
+                    webLayout = new LinearLayout(mainActivity);
+                webLayout.setOrientation(LinearLayout.VERTICAL);
+                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+                mainActivity.addContentView(webLayout,layoutParams);
+                if (webView==null)
+                    webView = new WebView(mainActivity);
+                webView.setWebViewClient(new WebViewClient());
+                layoutParams.weight = 1.0f;
+                webView.setLayoutParams(layoutParams);
+                webView.loadUrl(webURL);
+                webLayout.addView(webTextView);
+                webLayout.addView(webView);
+                if (pixelSpace>0)
+                    webTextView.setHeight(pixelSpace);
+            }
+        });
+    }
+
+    public void closeWebView(final ShareImageCallback callback)
+    {
+        mainActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (webLayout!=null)
+                {
+                    webLayout.removeAllViews();
+                    webLayout.setVisibility(View.GONE);
+                    webLayout = null;
+                    webView = null;
+                    webTextView = null;
+                    callback.onShareComplete(1);
+                }
+                else
+                    callback.onShareComplete(0);
+            }
+        });
+    }
+
     public void shareImage(final byte[] imagePNG, final String caption, final ShareImageCallback callback)
     {
         mainActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                int result = 0;
                 File imageFile = new File(mainActivity.getFilesDir(),"screengrab.png");
                 FileOutputStream imageStream;
                 try {
@@ -101,8 +159,9 @@ public class MyPlugin {
                                 shareIntent.putExtra(Intent.EXTRA_STREAM,contentUri);
                                 if (caption!=null)
                                     shareIntent.putExtra(Intent.EXTRA_TEXT,caption);
-                                mainActivity.startActivity(Intent.createChooser(shareIntent,"Share with..."));
-                                result = 1;
+                                shareIntent.setClass(mainActivity, OnResultCallback.class);
+                                OnResultCallback.shareImageCallback = callback;
+                                mainActivity.startActivity(shareIntent);
                             }
                             catch (Exception e)
                             {
@@ -122,7 +181,6 @@ public class MyPlugin {
                     e.printStackTrace();
                     Log.i(LOGTAG,"Error writing file: " + e);
                 }
-                callback.onShareComplete(result);
             }
         });
     }
